@@ -1,0 +1,36 @@
+image: alpine:latest
+
+stages:
+  - test
+  - deploy
+
+secret-detection:
+  stage: test
+  image:
+    name: zricethezav/gitleaks:latest
+    entrypoint: [""]
+  script:
+    - gitleaks detect --source . --no-git --verbose --redact
+
+code-quality:
+  stage: test
+  image: node:16.13
+  only:
+    - merge_requests
+  script:
+    - npm install
+    - npm run build
+    - npm run lint
+    - npm run test-once
+
+deploy:
+  image: node:16.13
+  only:
+    refs:
+      - master
+  script:
+    - npm install
+    - npm run build
+    - npm run lint
+    - npm run test-once
+    # - npm run publish
